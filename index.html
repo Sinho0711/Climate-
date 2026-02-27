@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+  <title>Weather App</title>
+</head>
+<body>
+  <div class="card"> <!--Container, engloba todo o card do HTML-->
+    <div class="search"> <!--Espaço de pesquisa-->
+      <input class="search-input" placeholder="Digite o nome da cidade aqui" spellcheck="false"> <!--Barra de pesquisa-->
+      <!-- mantido 'seach-button' para não quebrar seu CSS -->
+      <button class="seach-button"> <!--Botão de pesquisa-->
+        <img class="seach-button-img" src="images/search.png" alt="Buscar"> <!--Imagem de lupa para pesquisa-->
+      </button>
+    </div> <!--Fechamento do espaço de pesquisa-->
+
+    <div class="error" style="display:none;"> <!--Espaço de erro-->
+      <p>Nome de cidade inválido.</p> <!--Texto de erro-->
+    </div> <!--Fechamento do espaço de erro-->
+
+    <div class="weather" style="display:none;"> <!--Espaço com o clima, umidade e a cidade-->
+      <img src="images/rain.png" class="weather-icon" alt="Condição do tempo"> <!--Ícone do clima-->
+      <h1 class="temp">22°C</h1> <!--Título com a temperatura-->
+      <h2 class="city">Salvador</h2> <!--Subtítulo com o nome da cidade-->
+
+      <div class="col"> <!--Espaço da umidade-->
+        <img src="images/humidity.png" alt="Umidade"> <!--Imagem da umidade-->
+        <div>
+          <p class="humidity">50%</p> <!--Percentual de umidade-->
+          <p>Humidity</p> <!--Rótulo da umidade-->
+        </div> <!--Fechamento do bloco de texto da umidade-->
+      </div> <!--Fechamento do espaço da umidade-->
+
+      <div class="col"> <!--Espaço do vento-->
+        <img src="images/wind.png" alt="Vento"> <!--Imagem do vento-->
+        <div>
+          <p class="wind">15 km/h</p> <!--Velocidade do vento-->
+          <p>Wind Speed</p> <!--Rótulo do vento-->
+        </div>
+      </div> <!--Fechamento do espaço do vento-->
+    </div> <!--Fechamento do bloco de clima-->
+  </div> <!--Fechamento do card-->
+
+  <script>
+    const apiKey = "b4560dccd1d516489d5845bb11ee504f"; //Chave da API
+    const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q="; //Url da API
+
+    const searchBox = document.querySelector(".search-input"); 
+    const searchBtn = document.querySelector(".search button"); 
+    const weatherIcon = document.querySelector(".weather-icon");  
+    const errorBox = document.querySelector(".error");
+    const weatherBox = document.querySelector(".weather");
+
+    async function checkWeather(city) {
+      const q = (city || "").trim(); //A variavel q recebe a cidade ou recebe o nulo, normalizado com o uso do trim
+      if (!q) { //Inicio vazio
+        errorBox.style.display = "block";
+        errorBox.querySelector("p").textContent = "Digite o nome da cidade.";
+        weatherBox.style.display = "none";
+        return;
+      }
+
+      const url = apiUrl + encodeURIComponent(q) + `&appid=${apiKey}`; //salva o url da api com o nome da cidade nova e a key
+      const response = await fetch(url); //salva a consulta da api
+
+      if (!response.ok) { //nao recebe cidade valida
+        errorBox.style.display = "block";
+        errorBox.querySelector("p").textContent = "Nome de cidade inválido.";
+        weatherBox.style.display = "none";
+        return;
+      }
+
+      const data = await response.json(); //data recebe JSON da api
+
+      document.querySelector(".city").textContent = data.name; //substitui o texto de cidade pela cidade encontrada na api
+      document.querySelector(".temp").textContent = Math.round(data.main.temp) + "°C"; //substitui o texto da temperatura pela cidade encontrada na api
+      document.querySelector(".humidity").textContent = data.main.humidity + "%"; //substitui o texto da umidade pela cidade encontrada na api
+      document.querySelector(".wind").textContent = Math.round(data.wind.speed) + " km/h"; //substitui o texto do vento pela cidade encontrada na api
+
+      const cond = data.weather?.[0]?.main || ""; //Faz a checagem em cada parte do data e salva na variavel cond, caso nao exista salva nulo
+      if (cond === "Clouds") { //Se a variavel for igual a nuvens, escolha a imagem nuvem
+        weatherIcon.src = "images/clouds.png"; 
+      } else if (cond === "Clear") { //Se a variavel for igual a claro, escolha a imagem claro
+        weatherIcon.src = "images/clear.png"; 
+      } else if (cond === "Rain") { //Se a variavel for igual a chuva, escolha a imagem chuva
+        weatherIcon.src = "images/rain.png"; 
+      } else if (cond === "Drizzle") { //Se a variavel for igual a , escolha a imagem 
+        weatherIcon.src = "images/drizzle.png";
+      } else if (cond === "Mist") { //Se a variavel for igual a nevoa, escolha a imagem nevoa
+        weatherIcon.src = "images/mist.png";
+      }
+
+      errorBox.style.display = "none"; //Tela de erro igual vazio""
+      weatherBox.style.display = "block";
+    }
+
+    searchBtn.addEventListener("click", () => {
+      checkWeather(searchBox.value);
+    });
+    searchBox.addEventListener("keydown", (e) =>{
+      if(e.key === "Enter"){ checkWeather(searchBox.value);} 
+    });
+  </script>
+</body>
+</html>
